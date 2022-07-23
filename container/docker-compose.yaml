@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+
+  postgresql:
+      image: postgres-image
+      container_name: postgresql-container
+      ports:
+        - 5432:5432
+      volumes:
+        - ./dbServer/data:/var/lib/postgresql/data
+        # - /tmp:/var/lib/postgresql/data
+      environment:
+          PGDATA: ${PGDATA}
+          POSTGRES_USER: ${POSTGRES_USER}
+          POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+          POSTGRES_DB: ${POSTGRES_DB}
+      restart: always
+
+  tomcat:
+    image: tomcat-image
+    container_name: tomcat-container
+    ports:
+      - 8080:8080
+    restart: on-failure
+    depends_on:
+      - postgresql
+
+#docker system prune -af
