@@ -2,16 +2,16 @@ package org.websitebook.ws.entities;
 
 public class Book extends Bookmark {
 
-	private int publicationYear;
+	private Integer publicationYear;
 	private String publisher;
 	private String[] authors;
 	private String genre;
-	private double amazonRating;
+	private Double amazonRating;
 	
-	public int getPublicationYear() {
+	public Integer getPublicationYear() {
 		return publicationYear;
 	}
-	public void setPublicationYear(int publicationYear) {
+	public void setPublicationYear(Integer publicationYear) {
 		this.publicationYear = publicationYear;
 	}
 	public String getPublisher() {
@@ -32,10 +32,10 @@ public class Book extends Bookmark {
 	public void setGenre(String genre) {
 		this.genre = genre;
 	}
-	public double getAmazonRating() {
+	public Double getAmazonRating() {
 		return amazonRating;
 	}
-	public void setAmazonRating(double amazonRating) {
+	public void setAmazonRating(Double amazonRating) {
 		this.amazonRating = amazonRating;
 	}
 	

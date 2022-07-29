@@ -15,7 +15,7 @@ public class DaoManager {
 	private static PreparedStatement statement = null;
 	
 	private static String getConnectionString() {
-		return "";
+		return org.websitebook.ws.constants.Connection.CONNECTION;
 	}
 	
 	private static Connection getConnection() throws SQLException {

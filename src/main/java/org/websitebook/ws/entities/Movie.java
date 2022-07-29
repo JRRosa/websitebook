@@ -2,16 +2,16 @@ package org.websitebook.ws.entities;
 
 public class Movie extends Bookmark {
 
-	private int releaseYear;
+	private Integer releaseYear;
 	private String[] cast;
 	private String[] directors;
 	private String genre;
-	private double imdbRating;
+	private Double imdbRating;
 	
-	public int getReleaseYear() {
+	public Integer getReleaseYear() {
 		return releaseYear;
 	}
-	public void setReleaseYear(int releaseYear) {
+	public void setReleaseYear(Integer releaseYear) {
 		this.releaseYear = releaseYear;
 	}
 	public String[] getCast() {
@@ -32,10 +32,10 @@ public class Movie extends Bookmark {
 	public void setGenre(String genre) {
 		this.genre = genre;
 	}
-	public double getImdbRating() {
+	public Double getImdbRating() {
 		return imdbRating;
 	}
-	public void setImdbRating(double imdbRating) {
+	public void setImdbRating(Double imdbRating) {
 		this.imdbRating = imdbRating;
 	}
 	
