@@ -1,18 +1,28 @@
 package org.websitebook.ws.entities;
 
 public class User {
-	private long id;
+	private Long id;
 	private String email;
 	private String password;
 	private String firstName;
 	private String lastName;
-	private int gender;
-	private int userTypeId;
+	private Integer gender;
+	private Integer userTypeId;
 	
-	public long getId() {
+	public User(Long id, String email, String password, String firstName, String lastName, Integer gender, Integer userTypeId) {
+		this.id = id;
+		this.email = email;
+		this.password = password;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.gender = gender;
+		this.userTypeId = userTypeId;
+	}
+	
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	public String getEmail() {
@@ -39,16 +49,16 @@ public class User {
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
 	}
-	public int getGender() {
+	public Integer getGender() {
 		return gender;
 	}
-	public void setGender(int gender) {
+	public void setGender(Integer gender) {
 		this.gender = gender;
 	}
-	public int getUserTypeId() {
+	public Integer getUserTypeId() {
 		return userTypeId;
 	}
-	public void setUserTypeId(int userTypeId) {
+	public void setUserTypeId(Integer userTypeId) {
 		this.userTypeId = userTypeId;
 	}
 	

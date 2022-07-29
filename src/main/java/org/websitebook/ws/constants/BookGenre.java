@@ -16,5 +16,3 @@ public class BookGenre {
     public static final String SELF_HELP = "Self help";
     public static final String TECNICAL = "Tecnical";
 }
-
-

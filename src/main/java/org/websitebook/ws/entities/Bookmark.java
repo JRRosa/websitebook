@@ -2,14 +2,14 @@ package org.websitebook.ws.entities;
 
 public class Bookmark {
 
-	private long id;
+	private Long id;
 	private String title;
 	private String profileUrl;
 	
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 	public String getTitle() {
