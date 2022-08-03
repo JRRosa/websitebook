@@ -7,6 +7,7 @@ public class Book extends Bookmark {
 	private String[] authors;
 	private String genre;
 	private Double amazonRating;
+	private String imageUrl;
 	
 	public Integer getPublicationYear() {
 		return publicationYear;
@@ -37,6 +38,12 @@ public class Book extends Bookmark {
 	}
 	public void setAmazonRating(Double amazonRating) {
 		this.amazonRating = amazonRating;
+	}
+	public String getImageUrl() {
+		return imageUrl;
+	}
+	public void setImageUrl(String imageUrl) {
+		this.imageUrl = imageUrl;
 	}
 	
 }
