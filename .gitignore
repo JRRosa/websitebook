@@ -6,4 +6,4 @@ target
 container/.env
 container/dbServer/data
 container/webServer/data
-src/main/java/org/websitebook/ws/constants/ConnectionSql.java
+src/main/java/org/websitebook/ws/domain/dao/constants/ConnectionSql.java
