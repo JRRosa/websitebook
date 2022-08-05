@@ -15,10 +15,14 @@ import org.websitebook.ws.domain.dao.exceptions.DBException;
 
 public class UserDAOImpl implements UserDAO {
 
+	private static final String GET_DRIVER = "org.postgresql.Driver";
+	private static final String GET_USER_BY_ID = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user WHERE id = ?";
+	private static final String GET_ALL_USER = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user ";
+	private static final String DELETE_USER_BY_ID = " DELETE FROM dbo.user WHERE id = ? ";
+	
 	private static UserDAOImpl instance;
 	private User user = null;
 	private List<User> data = null;
-	private StringBuilder sqlQuery = null;
 	private Connection conn = null;
 	private PreparedStatement st = null;
 	private ResultSet rs = null;
@@ -32,17 +36,13 @@ public class UserDAOImpl implements UserDAO {
 		return instance;
 	}
 
-	@Override
-	public User getById(Long id) throws SQLException {
-
-		sqlQuery = new StringBuilder();
-		sqlQuery.append(" SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user WHERE id = ?");
+	public User getById(Long id) {
 		
 		try {
-			Class.forName("org.postgresql.Driver");
+			Class.forName(GET_DRIVER);
 			
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
-			st = conn.prepareStatement(sqlQuery.toString());
+			st = conn.prepareStatement(GET_USER_BY_ID);
 			st.setLong(1, id);
 			rs = st.executeQuery();
 
@@ -85,18 +85,15 @@ public class UserDAOImpl implements UserDAO {
 		return user;
 	}
 
-	@Override
 	public List<User> getAll() {
 
 		data = new ArrayList<>();
-		sqlQuery = new StringBuilder();
-		sqlQuery.append(" SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user");
 		
 		try {
-			Class.forName("org.postgresql.Driver");
+			Class.forName(GET_DRIVER);
 			
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
-			st = conn.prepareStatement(sqlQuery.toString());
+			st = conn.prepareStatement(GET_ALL_USER);
 			rs = st.executeQuery();
 
 			while (rs.next()) {
@@ -110,12 +107,9 @@ public class UserDAOImpl implements UserDAO {
 				user.setGender(rs.getInt("gender_id"));
 				user.setUserTypeId(rs.getInt("user_type_id"));
 				data.add(user);
-			
 			}
 
 		} catch (ClassNotFoundException e) {
-			e.printStackTrace();
-		} catch (DBException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -140,15 +134,12 @@ public class UserDAOImpl implements UserDAO {
 
 	@Override
 	public void delete(User t) throws DBException {
-
-		sqlQuery = new StringBuilder();
-		sqlQuery.append(" DELETE FROM dbo.user WHERE id = ?");
 		
 		try {
-			Class.forName("org.postgresql.Driver");
-			
+			Class.forName(GET_DRIVER);
+						
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
-			st = conn.prepareStatement(sqlQuery.toString());
+			st = conn.prepareStatement(DELETE_USER_BY_ID);
 			st.setLong(1, t.getId());
 			rs = st.executeQuery();
 

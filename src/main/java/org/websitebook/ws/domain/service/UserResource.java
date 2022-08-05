@@ -25,24 +25,18 @@ public class UserResource {
 	
 	@GET
 	public Response list(){
-		try {
-			listUser = userDAOImpl.getAll(); 
+		listUser = userDAOImpl.getAll(); 
+		if(listUser != null)
 			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 		return Response.status(Response.Status.NOT_FOUND).build();
 	}
 	
 	@GET 
 	@Path("{id}")
 	public Response getUserById(@PathParam("id") String userId) {
-		try {
-			user = userDAOImpl.getById(Long.parseLong(userId)); 
+		user = userDAOImpl.getById(Long.parseLong(userId)); 
+		if(user != null)
 			return Response.ok(user, MediaType.APPLICATION_JSON).build();
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
 		return Response.status(Response.Status.NOT_FOUND).build();
 	}
 
@@ -84,12 +78,10 @@ public class UserResource {
 	public Response update(User userPage) {
 		try {
 			if (userPage != null) {
-				user = userDAOImpl.update(userPage);
+				//user = userDAOImpl.update(userPage);
 				return Response.ok().build();
 			}
 			
-		} catch (DBException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
