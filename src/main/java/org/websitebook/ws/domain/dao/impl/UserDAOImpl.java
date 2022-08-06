@@ -15,7 +15,6 @@ import org.websitebook.ws.domain.dao.exceptions.DBException;
 
 public class UserDAOImpl implements UserDAO {
 
-	private static final String GET_DRIVER = "org.postgresql.Driver";
 	private static final String GET_USER_BY_ID = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user WHERE id = ?";
 	private static final String GET_ALL_USER = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user ";
 	private static final String DELETE_USER_BY_ID = " DELETE FROM dbo.user WHERE id = ? ";
