@@ -12,4 +12,5 @@ public interface Dao<T, K> {
 	void update(T entity) throws DBException;
 	void delete(T entity) throws DBException;
 	
+	
 }

@@ -8,16 +8,21 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.enterprise.context.Dependent;
+
 import org.websitebook.ws.domain.dao.UserDAO;
 import org.websitebook.ws.domain.dao.constants.ConnectionSql;
+import org.websitebook.ws.domain.dao.convert.ConvertUtil;
 import org.websitebook.ws.domain.dao.entities.User;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
 
+@Dependent
 public class UserDAOImpl implements UserDAO {
 
 	private static final String GET_USER_BY_ID = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user WHERE id = ?";
 	private static final String GET_ALL_USER = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user ";
 	private static final String DELETE_USER_BY_ID = " DELETE FROM dbo.user WHERE id = ? ";
+	private static final String CREATE_USER = " INSERT INTO dbo.user SET id = ? ";
 	
 	private static UserDAOImpl instance;
 	private User user = null;
@@ -28,17 +33,10 @@ public class UserDAOImpl implements UserDAO {
 		
 	private UserDAOImpl() {}
 	
-	public static UserDAOImpl getInstance() {
-		if(instance == null) {
-			instance = new UserDAOImpl();
-		}
-		return instance;
-	}
-
 	public User getById(Long id) {
 		
 		try {
-			Class.forName(GET_DRIVER);
+			Class.forName(ConnectionSql.GET_DRIVER);
 			
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
 			st = conn.prepareStatement(GET_USER_BY_ID);
@@ -47,14 +45,7 @@ public class UserDAOImpl implements UserDAO {
 
 			while (rs.next()) {
 			
-				user = new User();
-				user.setId(rs.getLong("id"));
-				user.setEmail(rs.getString("email"));
-				user.setPassword(rs.getString("password"));
-				user.setFirstName(rs.getString("first_name"));
-				user.setLastName(rs.getString("last_name"));
-				user.setGender(rs.getInt("gender_id"));
-				user.setUserTypeId(rs.getInt("user_type_id"));
+				user = ConvertUtil.convert(rs, User.class);
 				data.add(user);
 			
 			}
@@ -89,7 +80,7 @@ public class UserDAOImpl implements UserDAO {
 		data = new ArrayList<>();
 		
 		try {
-			Class.forName(GET_DRIVER);
+			Class.forName(ConnectionSql.GET_DRIVER);
 			
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
 			st = conn.prepareStatement(GET_ALL_USER);
@@ -97,14 +88,7 @@ public class UserDAOImpl implements UserDAO {
 
 			while (rs.next()) {
 			
-				user = new User();
-				user.setId(rs.getLong("id"));
-				user.setEmail(rs.getString("email"));
-				user.setPassword(rs.getString("password"));
-				user.setFirstName(rs.getString("first_name"));
-				user.setLastName(rs.getString("last_name"));
-				user.setGender(rs.getInt("gender_id"));
-				user.setUserTypeId(rs.getInt("user_type_id"));
+				user = ConvertUtil.convert(rs, User.class);
 				data.add(user);
 			}
 
@@ -135,7 +119,7 @@ public class UserDAOImpl implements UserDAO {
 	public void delete(User t) throws DBException {
 		
 		try {
-			Class.forName(GET_DRIVER);
+			Class.forName(ConnectionSql.GET_DRIVER);
 						
 			conn = DriverManager.getConnection(ConnectionSql.URL,ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
 			st = conn.prepareStatement(DELETE_USER_BY_ID);
