@@ -4,87 +4,98 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.websitebook.ws.domain.dao.constants.ConnectionSql;
+import org.websitebook.ws.domain.dao.convert.ConvertUtil;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
 
 public abstract class AbstractDao<T, K> {
-
-    private Connection connection;
-    private PreparedStatement preparedStatement = null;
-	private ResultSet resultSet = null;
-
-    public T create(T entity, String sqlQuery) throws DBException {
-        try {
-        	preparedStatement = getQueryConfigurate(sqlQuery);
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                return getEntity(resultSet);
-            }
-        } catch (Exception e) {
-        	throw new DBException(e.getMessage(), e);
-
-        }
-        return null;
-    }
-
-    public T update(T entity, String sqlQuery) throws DBException {
-        try {
-        	preparedStatement = getQueryConfigurate(sqlQuery);
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                return getEntity(resultSet);
-            }
-        } catch (Exception e) {
-        	throw new DBException(e.getMessage(), e);
-
-        }
-        return null;
-    }
-
-    public void delete(K id, String sqlQuery) throws DBException {
-        try {
-        	return findById(id, sqlQuery);
-        } catch (Exception e) {
-        	throw new DBException(e.getMessage(), e);
-        }
-    }
-
-    public T findById(K id, String sqlQuery) throws DBException {
-        try {
-
-            preparedStatement = getQueryConfigurate(sqlQuery);
-            preparedStatement.setLong(1, (Long) id);
-            resultSet = preparedStatement.executeQuery();
-            return resultSet;
-        } catch (Exception e) {
-        	throw new DBException(e.getMessage(), e);
-        }
-        return resultSet;
-    }
     
-    public List<T> findAll(String sqlQuery) throws DBException {
-        try {
-            
-            preparedStatement = getQueryConfigurate(sqlQuery);
-            resultSet = preparedStatement.executeQuery();
-            while (resultSet.next()) {
-                return getEntity(resultSet);
-            }
-        } catch (Exception e) {
-        	throw new DBException(e.getMessage(), e);
-        }
-        return null;
-    }
-       
-    private PreparedStatement getQueryConfigurate(String sqlQuery) throws DBException | ClassNotFoundException {
+    protected abstract Class<T> getTypeClass();
+    protected abstract String getCreateQuery();
+    protected abstract String getFindByIdQuery();
+    protected abstract String getFindAllQuery();
+    protected abstract String getUpdateQuery();
+    protected abstract String getDeleteQuery();
+    
+    private Connection getConnection() throws DBException, ClassNotFoundException, SQLException {
         Class.forName(ConnectionSql.GET_DRIVER);
-        connection = DriverManager.getConnection(ConnectionSql.URL, ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
-        preparedStatement = connection.prepareStatement(sqlQuery);
-        return preparedStatement;
+        return DriverManager.getConnection(ConnectionSql.URL, ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
     }
 
-    protected abstract T getEntity(ResultSet resultSet) throws DBException;
+    public T create(T entity) {
+        try(Connection connection = getConnection()){
+            try(PreparedStatement preparedStatement = connection.prepareStatement(getCreateQuery())){
+                try(ResultSet resultSet = preparedStatement.executeQuery()){
+                    while (resultSet.next()) {
+                        entity = ConvertUtil.convert(resultSet, getTypeClass());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return entity;
+    }
+
+    public List<T> findAll() {
+        List<T> entities = null;
+        try(Connection connection = getConnection()){
+            try(PreparedStatement preparedStatement = connection.prepareStatement(getFindAllQuery())){
+                try(ResultSet resultSet = preparedStatement.executeQuery()){
+                    entities = new ArrayList<>();
+                    while (resultSet.next()) {
+                        entities.add(ConvertUtil.convert(resultSet, getTypeClass()));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return entities;
+    }
+
+    public T findById(K id) {
+        T entity = null;
+        try(Connection connection = getConnection()){
+            try(PreparedStatement preparedStatement = connection.prepareStatement(getFindByIdQuery())){
+                preparedStatement.setLong(1, (Long) id);
+                try(ResultSet resultSet = preparedStatement.executeQuery()){
+                    while (resultSet.next()) {
+                        entity = ConvertUtil.convert(resultSet, getTypeClass());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return entity;
+    }
+
+    public T update(T entity) {
+        try(Connection connection = getConnection()){
+            try(PreparedStatement preparedStatement = connection.prepareStatement(getUpdateQuery())){
+                preparedStatement.setObject(1, entity);
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return entity;
+    }
+
+    public void delete(K id) {
+        try(Connection connection = getConnection()){
+            try(PreparedStatement preparedStatement = connection.prepareStatement(getDeleteQuery())){
+                preparedStatement.setLong(1, (Long) id);
+                preparedStatement.executeUpdate();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }

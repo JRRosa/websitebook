@@ -2,6 +2,7 @@ package org.websitebook.ws.domain.service;
 
 import java.util.List;
 
+import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -10,22 +11,23 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.websitebook.ws.domain.dao.UserDAO;
 import org.websitebook.ws.domain.dao.entities.User;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
-import org.websitebook.ws.domain.dao.impl.UserDAOImpl;
 
+@Dependent
 @Path("/user")
 public class UserResource {
 
 	@Inject
-	private UserDAOImpl userDAO;
+	private UserDAO userDAO;
 
 	private User user = null;
 	private List<User> listUser = null;
 	
 	@GET
 	public Response list(){
-		listUser = userDAO.getAll(); 
+		listUser = userDAO.getAll();
 		if(listUser != null)
 			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
 		return Response.status(Response.Status.NOT_FOUND).build();
