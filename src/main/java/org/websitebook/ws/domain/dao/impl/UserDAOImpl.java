@@ -10,14 +10,15 @@ import java.util.List;
 
 import javax.enterprise.context.Dependent;
 
+import org.websitebook.ws.domain.dao.AbstractDao;
 import org.websitebook.ws.domain.dao.UserDAO;
 import org.websitebook.ws.domain.dao.constants.ConnectionSql;
-import org.websitebook.ws.domain.dao.convert.ConvertUtil;
 import org.websitebook.ws.domain.dao.entities.User;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
+import org.websitebook.ws.domain.dao.transformer.ConvertUtil;
 
 @Dependent
-public class UserDAOImpl implements UserDAO {
+public class UserDAOImpl extends AbstractDao<User, Integer> implements UserDAO {
 
 	private static final String GET_USER_BY_ID = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user WHERE id = ?";
 	private static final String GET_ALL_USER = " SELECT id, email, password, first_name, last_name, gender_id, user_type_id FROM dbo.user ";
@@ -31,9 +32,9 @@ public class UserDAOImpl implements UserDAO {
 	private PreparedStatement st = null;
 	private ResultSet rs = null;
 		
-	private UserDAOImpl() {}
+	/* private UserDAOImpl() {} */
 	
-	public User getById(Long id) {
+	/* public User getById(Long id) {
 		
 		try {
 			Class.forName(ConnectionSql.GET_DRIVER);
@@ -45,7 +46,7 @@ public class UserDAOImpl implements UserDAO {
 
 			while (rs.next()) {
 			
-				user = ConvertUtil.convert(rs, User.class);
+				user = ConvertUtil.convertToEntity(rs, User.class);
 				data.add(user);
 			
 			}
@@ -88,7 +89,7 @@ public class UserDAOImpl implements UserDAO {
 
 			while (rs.next()) {
 			
-				user = ConvertUtil.convert(rs, User.class);
+				user = ConvertUtil.convertToEntity(rs, User.class);
 				data.add(user);
 			}
 
@@ -160,6 +161,34 @@ public class UserDAOImpl implements UserDAO {
 	public void update(User t) throws DBException {
 		
 
+	} */
+
+	@Override
+	protected Class<User> getTypeClass() {
+		return User.class;
+	}
+
+	@Override
+	protected String getFindAllQuery() {
+		return GET_ALL_USER;
+	}
+
+	@Override
+	public User create(User entity) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void update(User entity) throws DBException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void delete(User entity) throws DBException {
+		// TODO Auto-generated method stub
+		
 	}
 	
 

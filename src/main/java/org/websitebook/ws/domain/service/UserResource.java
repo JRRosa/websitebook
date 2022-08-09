@@ -27,18 +27,20 @@ public class UserResource {
 	
 	@GET
 	public Response list(){
-		listUser = userDAO.getAll();
-		if(listUser != null)
+		listUser = userDAO.findAll();
+		if(listUser != null){
 			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
+		}
 		return Response.status(Response.Status.NOT_FOUND).build();
 	}
 	
-	@GET 
+/* 	@GET 
 	@Path("{id}")
 	public Response getUserById(@PathParam("id") String userId) {
 		user = userDAO.getById(Long.parseLong(userId)); 
-		if(user != null)
+		if(user != null){
 			return Response.ok(user, MediaType.APPLICATION_JSON).build();
+		}
 		return Response.status(Response.Status.NOT_FOUND).build();
 	}
 
@@ -68,8 +70,6 @@ public class UserResource {
 				return Response.ok().build();
 			}
 			
-		} catch (DBException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -88,7 +88,7 @@ public class UserResource {
 			e.printStackTrace();
 		}
 		return Response.notModified().build();
-	}
+	} */
 	
 	
 
