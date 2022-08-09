@@ -1,4 +1,4 @@
-package org.websitebook.ws.domain.dao.convert;
+package org.websitebook.ws.domain.dao.transformer;
 
 import static java.lang.annotation.ElementType.FIELD;
 

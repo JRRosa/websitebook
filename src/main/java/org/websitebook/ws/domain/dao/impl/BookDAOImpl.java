@@ -33,7 +33,7 @@ public class BookDAOImpl implements BookDAO{
 		}
 		return instance;
 	}
-
+/*
 	@Override
 	public Book getById(Long id) throws SQLException {
 		// TODO Auto-generated method stub
@@ -97,6 +97,6 @@ public class BookDAOImpl implements BookDAO{
 		} 
 		
 		return null;
-	}
+	}*/
 
 }
