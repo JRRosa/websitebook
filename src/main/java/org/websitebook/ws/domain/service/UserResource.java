@@ -11,59 +11,31 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.websitebook.ws.domain.dao.UserDAO;
+import org.websitebook.ws.domain.dao.UserDao;
 import org.websitebook.ws.domain.dao.entities.User;
-import org.websitebook.ws.domain.dao.exceptions.DBException;
 
 @Dependent
 @Path("/user")
 public class UserResource {
 
 	@Inject
-	private UserDAO userDAO;
+	private UserDao userDAO;
 
 	private User user = null;
 	private List<User> listUser = null;
 	
-	@GET
-	public Response list(){
-		listUser = userDAO.findAll();
-		if(listUser != null){
-			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
-		}
-		return Response.status(Response.Status.NOT_FOUND).build();
-	}
-	
-/* 	@GET 
-	@Path("{id}")
-	public Response getUserById(@PathParam("id") String userId) {
-		user = userDAO.getById(Long.parseLong(userId)); 
-		if(user != null){
-			return Response.ok(user, MediaType.APPLICATION_JSON).build();
-		}
-		return Response.status(Response.Status.NOT_FOUND).build();
-	}
-
-	@POST 
-	@Path("/deleteUser/{id}")
-	public Response deleteUserById(@PathParam("id") String userId) {
-		try {
-			User user = userDAO.getById(Long.parseLong(userId));
-			if(user != null) {
-				userDAO.delete(user);
-				return Response.ok().build();
-			}
-		} catch (DBException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return Response.notModified().build();
-	}
-	
-	@POST 
+	@POST
 	@Path("/create")
-	public Response create(User userPage) {
+	public Response create(/* User userPage */) {
+		
+		User userPage = new User();
+		userPage.setEmail("htv399@gmail.com");
+		userPage.setPassword("test");
+		userPage.setFirstName("Hamilton");
+		userPage.setLastName("Taveras");
+		userPage.setGender(1);
+		userPage.setUserTypeId(1);
+		
 		try {
 			if (userPage != null) {
 				user = userDAO.create(userPage);
@@ -75,12 +47,45 @@ public class UserResource {
 		}
 		return Response.notModified().build();
 	}
+
+	@GET
+	public Response list(){
+		listUser = userDAO.findAll();
+		if(listUser != null){
+			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
+		}
+		return Response.status(Response.Status.NOT_FOUND).build();
+	}
 	
-	@POST 
-	public Response update(User userPage) {
+	@GET 
+	@Path("{id}")
+	public Response getUserById(@PathParam("id") String userId) {
+		if(userId != null){
+			user = userDAO.findById(Long.parseLong(userId)); 
+			if(user != null){
+				return Response.ok(user, MediaType.APPLICATION_JSON).build();
+			}
+		}
+		
+		return Response.status(Response.Status.NOT_FOUND).build();
+	}
+
+	@GET
+	@Path("/update")
+	public Response update(/* User userPage */) {
+
+		User userPage = new User();
+		userPage.setId(Long.parseLong("9"));
+		userPage.setEmail("user013@semanticsquare.com");
+		userPage.setPassword("test");
+		userPage.setFirstName("Jairo");
+		userPage.setLastName("JR");
+		userPage.setGender(0);
+		userPage.setUserTypeId(2);
+
 		try {
 			if (userPage != null) {
-				//user = userDAO.update(userPage);
+				userDAO.update(userPage);
 				return Response.ok().build();
 			}
 			
@@ -88,8 +93,20 @@ public class UserResource {
 			e.printStackTrace();
 		}
 		return Response.notModified().build();
-	} */
-	
-	
+	}
+
+	@GET
+	@Path("/delete/{id}")
+	public Response deleteUserById(@PathParam("id") String userId) {
+		try {
+			if(userId != null) {
+				userDAO.delete(Long.parseLong(userId));
+				return Response.ok().build();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return Response.notModified().build();
+	}
 
 }

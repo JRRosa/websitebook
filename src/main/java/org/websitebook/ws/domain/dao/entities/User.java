@@ -4,7 +4,7 @@ import org.websitebook.ws.domain.dao.transformer.Column;
 import org.websitebook.ws.domain.dao.transformer.Id;
 import org.websitebook.ws.domain.dao.transformer.Table;
 
-@Table(name = "user")
+@Table(name = "dbo.user")
 public class User {
 	
 	@Id(name = "id")

@@ -10,16 +10,11 @@ import java.util.List;
 
 import org.websitebook.ws.domain.dao.constants.ConnectionSql;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
-import org.websitebook.ws.domain.dao.transformer.ConvertUtil;
+import org.websitebook.ws.domain.dao.transformer.DaoTransformer;
 
 public abstract class AbstractDao<T, K> {
     
     protected abstract Class<T> getTypeClass();
-    // private abstract String getCreateQuery();
-    // protected abstract String getFindByIdQuery();
-    protected abstract String getFindAllQuery();
-    // protected abstract String getUpdateQuery();
-    // protected abstract String getDeleteQuery();
     
     private Connection getConnection() throws DBException, ClassNotFoundException, SQLException {
         Class.forName(ConnectionSql.GET_DRIVER);
@@ -28,13 +23,15 @@ public abstract class AbstractDao<T, K> {
 
     public T create(T entity) {
         try(Connection connection = getConnection()){
-            try(PreparedStatement preparedStatement = connection.prepareStatement(ConvertUtil.buildCreateQuery(getTypeClass()), PreparedStatement.RETURN_GENERATED_KEYS)){
-                preparedStatement = ConvertUtil.buildCreatePreparedStatement(preparedStatement, getTypeClass());
+            String sqlString = DaoTransformer.buildCreateQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString, PreparedStatement.RETURN_GENERATED_KEYS)){
+                DaoTransformer.setPreparedStatementCreateQuery(preparedStatement, entity);
                 preparedStatement.executeUpdate();
                 try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                     if (resultSet.next()) {
-                        K id = (K) resultSet.getObject(1);
-                        entity.setId(id);
+                    	int indexKey = 1; 
+                        K id = (K) resultSet.getObject(indexKey);
+                        entity.getClass().getMethod("setId", id.getClass()).invoke(entity, id);
                     }
                 }
             }
@@ -47,14 +44,16 @@ public abstract class AbstractDao<T, K> {
     public List<T> findAll() {
         List<T> entities = null;
         try(Connection connection = getConnection()){
-            try(PreparedStatement preparedStatement = connection.prepareStatement(getFindAllQuery())){
+            String sqlString = DaoTransformer.buildFindAllQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
                 try(ResultSet resultSet = preparedStatement.executeQuery()){
                     entities = new ArrayList<>();
                     while (resultSet.next()) {
-                        entities.add(ConvertUtil.convertToEntity(resultSet, getTypeClass()));
+                        entities.add(DaoTransformer.convertToEntity(resultSet, getTypeClass()));
                     }
                 }
             }
+            
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -65,11 +64,12 @@ public abstract class AbstractDao<T, K> {
     public T findById(K id) {
         T entity = null;
         try(Connection connection = getConnection()){
-            try(PreparedStatement preparedStatement = connection.prepareStatement(ConvertUtil.buildFindByIdQuery(getTypeClass()))) {
+            String sqlString = DaoTransformer.buildFindByIdQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
                 preparedStatement.setLong(1, (Long) id);
                 try(ResultSet resultSet = preparedStatement.executeQuery()){
                     while (resultSet.next()) {
-                        entity = ConvertUtil.convertToEntity(resultSet, getTypeClass());
+                        entity = DaoTransformer.convertToEntity(resultSet, getTypeClass());
                     }
                 }
             }
@@ -79,27 +79,28 @@ public abstract class AbstractDao<T, K> {
         return entity;
     }
 
-    /*public T update(T entity) {
+    public void update(T entity) {
         try(Connection connection = getConnection()){
-            try(PreparedStatement preparedStatement = connection.prepareStatement(getUpdateQuery())){
-                preparedStatement.setObject(1, entity);
+            String sqlString = DaoTransformer.buildUpdateQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
+                DaoTransformer.setPreparedStatementUpdateQuery(preparedStatement, entity);
                 preparedStatement.executeUpdate();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return entity;
     }
 
     public void delete(K id) {
         try(Connection connection = getConnection()){
-            try(PreparedStatement preparedStatement = connection.prepareStatement(getDeleteQuery())){
+        	String sqlString = DaoTransformer.buildDeleteQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
                 preparedStatement.setLong(1, (Long) id);
                 preparedStatement.executeUpdate();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-    } */
+    }
 
 }
