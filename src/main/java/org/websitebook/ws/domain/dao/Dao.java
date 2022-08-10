@@ -6,7 +6,6 @@ public interface Dao<T, K> {
 	
 	T create(T entity) throws DBException;
 	void update(T entity) throws DBException;
-	void delete(T entity) throws DBException;
-	
-	
+	void delete(K id) throws DBException;
+
 }
