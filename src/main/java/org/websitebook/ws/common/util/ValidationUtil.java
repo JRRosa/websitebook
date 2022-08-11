@@ -40,11 +40,7 @@ public class ValidationUtil {
 		
 		return isInvalid;
 	}
-	
-	public static boolean isNullOrEmpty(Number number){
-		return isNull(number) || number.equals(Empty.INTEGER);
-	}
-	
+		
 	public static boolean isNullOrEmpty(Number... numbers) {
 		boolean isInvalid = false;
 		

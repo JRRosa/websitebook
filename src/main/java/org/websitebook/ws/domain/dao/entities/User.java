@@ -1,12 +1,26 @@
 package org.websitebook.ws.domain.dao.entities;
 
+import org.websitebook.ws.domain.dao.transformer.Column;
+import org.websitebook.ws.domain.dao.transformer.Id;
+import org.websitebook.ws.domain.dao.transformer.Table;
+
+@Table(name = "dbo.user")
 public class User {
+	
+	@Id
+	@Column(name = "id")
 	private Long id;
+	@Column(name = "email")
 	private String email;
+	@Column(name = "password")
 	private String password;
+	@Column(name = "first_name")
 	private String firstName;
+	@Column(name = "last_name")
 	private String lastName;
+	@Column(name = "gender_id")
 	private Integer gender;
+	@Column(name = "user_type_id")
 	private Integer userTypeId;
 	
 	public User(){}
@@ -63,5 +77,28 @@ public class User {
 	public void setUserTypeId(Integer userTypeId) {
 		this.userTypeId = userTypeId;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("User [id=");
+		builder.append(id);
+		builder.append(", email=");
+		builder.append(email);
+		builder.append(", password=");
+		builder.append(password);
+		builder.append(", firstName=");
+		builder.append(firstName);
+		builder.append(", lastName=");
+		builder.append(lastName);
+		builder.append(", gender=");
+		builder.append(gender);
+		builder.append(", userTypeId=");
+		builder.append(userTypeId);
+		builder.append("]");
+		return builder.toString();
+	}
+	
+	
 	
 }
