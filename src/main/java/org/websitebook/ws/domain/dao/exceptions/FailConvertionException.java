@@ -7,17 +7,10 @@ public class FailConvertionException extends Exception {
     public FailConvertionException() {
         super(MESSAGE);
     }
-
-    public FailConvertionException(String message) {
-        super(message);
-    }	
     
     public FailConvertionException(Throwable cause) {
         super(MESSAGE, cause);
     }
 
-    public FailConvertionException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }
 	

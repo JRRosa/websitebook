@@ -20,25 +20,22 @@ public class UserResource {
 
 	@Inject
 	private UserDao userDAO;
-
-	private User user = null;
-	private List<User> listUser = null;
 	
-	@POST
+	@GET
 	@Path("/create")
 	public Response create(/* User userPage */) {
 		
 		User userPage = new User();
-		userPage.setEmail("htv399@gmail.com");
+		userPage.setEmail("htv934@gmail.com");
 		userPage.setPassword("test");
-		userPage.setFirstName("Hamilton");
-		userPage.setLastName("Taveras");
+		userPage.setFirstName("Hamilton1");
+		userPage.setLastName("Taveras1");
 		userPage.setGender(1);
 		userPage.setUserTypeId(1);
 		
 		try {
 			if (userPage != null) {
-				user = userDAO.create(userPage);
+				User user = userDAO.create(userPage);
 				return Response.ok().build();
 			}
 			
@@ -50,18 +47,18 @@ public class UserResource {
 
 	@GET
 	public Response list(){
-		listUser = userDAO.findAll();
-		if(listUser != null){
-			return Response.ok(listUser, MediaType.APPLICATION_JSON).build();
+		List<User> users = userDAO.findAll();
+		if(users != null){
+			return Response.ok(users, MediaType.APPLICATION_JSON).build();
 		}
 		return Response.status(Response.Status.NOT_FOUND).build();
 	}
 	
 	@GET 
-	@Path("{id}")
+	@Path("/{id}")
 	public Response getUserById(@PathParam("id") String userId) {
 		if(userId != null){
-			user = userDAO.findById(Long.parseLong(userId)); 
+			User user = userDAO.findById(Long.parseLong(userId)); 
 			if(user != null){
 				return Response.ok(user, MediaType.APPLICATION_JSON).build();
 			}
@@ -75,8 +72,8 @@ public class UserResource {
 	public Response update(/* User userPage */) {
 
 		User userPage = new User();
-		userPage.setId(Long.parseLong("9"));
-		userPage.setEmail("user013@semanticsquare.com");
+		userPage.setId(Long.parseLong("17"));
+		userPage.setEmail("user018@semanticsquare.com");
 		userPage.setPassword("test");
 		userPage.setFirstName("Jairo");
 		userPage.setLastName("JR");

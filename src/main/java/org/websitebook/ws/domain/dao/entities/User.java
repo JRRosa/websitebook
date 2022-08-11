@@ -7,7 +7,7 @@ import org.websitebook.ws.domain.dao.transformer.Table;
 @Table(name = "dbo.user")
 public class User {
 	
-	@Id(name = "id")
+	@Id
 	@Column(name = "id")
 	private Long id;
 	@Column(name = "email")

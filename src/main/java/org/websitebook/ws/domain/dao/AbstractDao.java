@@ -23,15 +23,13 @@ public abstract class AbstractDao<T, K> {
 
     public T create(T entity) {
         try(Connection connection = getConnection()){
-            String sqlString = DaoTransformer.buildCreateQuery(getTypeClass());
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString, PreparedStatement.RETURN_GENERATED_KEYS)){
+            String createQuery = DaoTransformer.buildCreateQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(createQuery, PreparedStatement.RETURN_GENERATED_KEYS)){
                 DaoTransformer.setPreparedStatementCreateQuery(preparedStatement, entity);
                 preparedStatement.executeUpdate();
                 try (ResultSet resultSet = preparedStatement.getGeneratedKeys()) {
                     if (resultSet.next()) {
-                    	int indexKey = 1; 
-                        K id = (K) resultSet.getObject(indexKey);
-                        entity.getClass().getMethod("setId", id.getClass()).invoke(entity, id);
+                        DaoTransformer.setEntityIdValue(entity, resultSet.getObject(1));
                     }
                 }
             }
@@ -44,8 +42,8 @@ public abstract class AbstractDao<T, K> {
     public List<T> findAll() {
         List<T> entities = null;
         try(Connection connection = getConnection()){
-            String sqlString = DaoTransformer.buildFindAllQuery(getTypeClass());
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
+            String findAllQuery = DaoTransformer.buildFindAllQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(findAllQuery)){
                 try(ResultSet resultSet = preparedStatement.executeQuery()){
                     entities = new ArrayList<>();
                     while (resultSet.next()) {
@@ -64,9 +62,9 @@ public abstract class AbstractDao<T, K> {
     public T findById(K id) {
         T entity = null;
         try(Connection connection = getConnection()){
-            String sqlString = DaoTransformer.buildFindByIdQuery(getTypeClass());
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
-                preparedStatement.setLong(1, (Long) id);
+            String findByQuery = DaoTransformer.buildFindByIdQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(findByQuery)){
+                DaoTransformer.setPreparedStatementIdQuery(preparedStatement, id);
                 try(ResultSet resultSet = preparedStatement.executeQuery()){
                     while (resultSet.next()) {
                         entity = DaoTransformer.convertToEntity(resultSet, getTypeClass());
@@ -81,8 +79,8 @@ public abstract class AbstractDao<T, K> {
 
     public void update(T entity) {
         try(Connection connection = getConnection()){
-            String sqlString = DaoTransformer.buildUpdateQuery(getTypeClass());
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
+            String updateQuery = DaoTransformer.buildUpdateQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)){
                 DaoTransformer.setPreparedStatementUpdateQuery(preparedStatement, entity);
                 preparedStatement.executeUpdate();
             }
@@ -93,9 +91,9 @@ public abstract class AbstractDao<T, K> {
 
     public void delete(K id) {
         try(Connection connection = getConnection()){
-        	String sqlString = DaoTransformer.buildDeleteQuery(getTypeClass());
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sqlString)){
-                preparedStatement.setLong(1, (Long) id);
+        	String deleteQuery = DaoTransformer.buildDeleteQuery(getTypeClass());
+            try(PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)){
+                DaoTransformer.setPreparedStatementIdQuery(preparedStatement, id);
                 preparedStatement.executeUpdate();
             }
         } catch (Exception e) {
