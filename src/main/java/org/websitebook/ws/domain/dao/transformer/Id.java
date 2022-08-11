@@ -9,5 +9,4 @@ import java.lang.annotation.Target;
 @Target(FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Id {
-	String name();
 }
