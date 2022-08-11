@@ -2,120 +2,112 @@ package org.websitebook.ws.domain.dao.transformer;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.websitebook.ws.domain.dao.exceptions.FailConvertionException;
 
 public class DaoTransformer {
 
-	private static <T> Boolean isAnnotationPresent(Field field, Class<? extends Annotation> annotation) {
-		return field.getAnnotation(annotation) != null;
+	private static <T> List<Field> getFieldsAnnotated(Class<T> clazz, Class<? extends Annotation>  annotation) {
+		return Arrays.asList(clazz.getDeclaredFields())
+				.stream()
+				.filter(field -> field.isAnnotationPresent(annotation))
+				.collect(Collectors.toList());
+	}
+	
+	private static <T> List<Field> getFieldColumnWithoutId(Class<T> clazz) {
+		return getFieldsAnnotated(clazz, Column.class)
+				.stream()
+				.filter(field -> !field.isAnnotationPresent(Id.class))
+				.collect(Collectors.toList());
 	}
 
-	private static <T> Field[] getFieldsAnnotatedWith(Field[] fields, Class<? extends Annotation> annotation) {
-		List<Field> fieldsList = new ArrayList();
-		for (Field field : fields) {
-			if (field.getAnnotation(annotation) != null) {
-				fieldsList.add(field);
-			}
-		}
-		return fieldsList.toArray(new Field[fieldsList.size()]);
+	private static <T> Field getFieldWithId(T entity) {
+		return getFieldsAnnotated(entity.getClass(), Id.class).stream().findFirst().get();
+	}
+	
+	private static void appendColumnToQuery(StringBuilder query, Field field, String columnPattern) {
+		query.append(getColumnName(field));
+		query.append(columnPattern);
+	}
+	
+	private static void cleanQueryAppend(StringBuilder query) {
+		query.delete(query.length() - 2, query.length());
+	}
+	
+	private static String getColumnName(Field field) {
+		return field.getAnnotation(Column.class).name();
 	}
 
-	private static <T> void setPreparedStatementFieldValue(Field field, PreparedStatement preparedStatement, int index,
-			T entity) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			NoSuchMethodException, SecurityException, SQLException {
-
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("get");
-		stringBuilder.append(field.getName().substring(0, 1).toUpperCase());
-		stringBuilder.append(field.getName().substring(1));
-		preparedStatement.setObject(index, entity.getClass().getMethod(stringBuilder.toString()).invoke(entity));
-	}
-
-	private static <T> String getIdFieldName(T entity) {
-
-		for (Field field : getFieldsAnnotatedWith(entity.getClass().getDeclaredFields(), Id.class)) {
-			return field.getName();
-		}
-
-		return null;
-	}
-
-	public static <T> T convertToEntity(ResultSet resultSet, Class<T> clazz) throws FailConvertionException {
+	public static <T> T convertToEntity(ResultSet resultSet, Class<T> clazz) throws FailConvertionException, SQLException {
 		try {
 			T entity = clazz.newInstance();
-			for (Field field : getFieldsAnnotatedWith(clazz.getDeclaredFields(), Column.class)) {
+			for (Field field: getFieldsAnnotated(clazz, Column.class)) {
 				field.setAccessible(true);
-				field.set(entity, resultSet.getObject(field.getAnnotation(Column.class).name()));
+				field.set(entity, resultSet.getObject(getColumnName(field)));	
 			}
 			return entity;
-		} catch (IllegalAccessException | InstantiationException | SQLException e) {
+		} catch (IllegalAccessException | InstantiationException e) {
 			throw new FailConvertionException(e);
 		}
 	}
 
 	public static <T> String buildCreateQuery(Class<T> clazz) {
 		StringBuilder query = new StringBuilder();
-		Table table = clazz.getAnnotation(Table.class);
-		if (table != null) {
+		if (clazz.isAnnotationPresent(Table.class)) {
+			Table table = clazz.getAnnotation(Table.class);
 			query.append("INSERT INTO ");
 			query.append(table.name());
 			query.append(" (");
-			Field[] fields = getFieldsAnnotatedWith(clazz.getDeclaredFields(), Column.class);
-			for (Field field : fields) {
-				if (!isAnnotationPresent(field, Id.class)) {
-					query.append(field.getAnnotation(Column.class).name());
-					query.append(", ");
-				}
+			
+			StringBuilder parameters = new StringBuilder();
+			for (Field field: getFieldColumnWithoutId(clazz)) {
+				appendColumnToQuery(query, field, ", ");
+				parameters.append("?, ");
 			}
-			query.delete(query.length() - 2, query.length());
-			query.append(") VALUES (");
-			for (Field field : fields) {
-				if (!isAnnotationPresent(field, Id.class)) {
-					query.append("?, ");
-				}
-			}
-			query.delete(query.length() - 2, query.length());
+			
+			cleanQueryAppend(query);
+			cleanQueryAppend(parameters);
+			query.append(parameters.toString());
 			query.append(")");
-
 		}
 
 		return query.toString();
 	}
 
-	public static <T> void setPreparedStatementCreateQuery(PreparedStatement preparedStatement, T entity)
-			throws SQLException, IllegalArgumentException, IllegalAccessException, InvocationTargetException,
-			NoSuchMethodException, SecurityException, NoSuchFieldException {
+	public static <T> void setPreparedStatementCreateQuery(PreparedStatement preparedStatement, T entity) throws FailConvertionException, SQLException {
 
-		int index = 1;
-		for (Field field : getFieldsAnnotatedWith(entity.getClass().getDeclaredFields(), Column.class)) {
-			if (!isAnnotationPresent(field, Id.class)) {
-				setPreparedStatementFieldValue(field, preparedStatement, index, entity);
-				index++;
+		try {
+			int index = 0;
+			for (Field field : getFieldColumnWithoutId(entity.getClass())) {
+				preparedStatement.setObject(index++, field.get(entity));
 			}
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new FailConvertionException(e);
 		}
+		
+		
 	}
 
-	public static <T, K> void setEntityIdValue(T entity, K id)
-			throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {
-		
-		String fieldName = getIdFieldName(entity);
-		Field field = entity.getClass().getDeclaredField(fieldName);
-		field.setAccessible(true);
-		field.set(entity, id);
-
+	public static <T, K> void setEntityIdValue(T entity, K id) throws FailConvertionException {
+		try {
+			Field field = getFieldWithId(entity);
+			field.setAccessible(true);
+			field.set(entity, id);
+		} catch (IllegalArgumentException | IllegalAccessException e) {
+			throw new FailConvertionException(e);
+		}
 	}
 
 	public static <T> String buildFindAllQuery(Class<T> clazz) {
 		StringBuilder query = new StringBuilder();
-		Table table = clazz.getAnnotation(Table.class);
-		if (table != null) {
+		if (clazz.isAnnotationPresent(Table.class)) {
+			Table table = clazz.getAnnotation(Table.class);
 			query.append("SELECT * FROM ");
 			query.append(table.name());
 		}
@@ -124,8 +116,8 @@ public class DaoTransformer {
 
 	public static <T> String buildFindByIdQuery(Class<T> clazz) {
 		StringBuilder query = new StringBuilder();
-		Table table = clazz.getAnnotation(Table.class);
-		if (table != null) {
+		if (clazz.isAnnotationPresent(Table.class)) {
+			Table table = clazz.getAnnotation(Table.class);
 			query.append("SELECT * FROM ");
 			query.append(table.name());
 			query.append(" WHERE ");
@@ -135,62 +127,54 @@ public class DaoTransformer {
 		return query.toString();
 	}
 
-	public static <T, K> void setPreparedStatementIdQuery(PreparedStatement preparedStatement, K id)
-			throws SQLException {
+	public static <T, K> void setPreparedStatementIdQuery(PreparedStatement preparedStatement, K id) throws SQLException {
 		int index = 1;
 		preparedStatement.setObject(index, id);
 	}
 
 	public static <T> String buildUpdateQuery(Class<T> clazz) {
 		StringBuilder query = new StringBuilder();
-		Table table = clazz.getAnnotation(Table.class);
-		if (table != null) {
+		if (clazz.isAnnotationPresent(Table.class)) {
+			Table table = clazz.getAnnotation(Table.class);
 			query.append("UPDATE ");
 			query.append(table.name());
 			query.append(" SET ");
-			Field[] fields = getFieldsAnnotatedWith(clazz.getDeclaredFields(), Column.class);
-			for (Field field : fields) {
-				if (!isAnnotationPresent(field, Id.class)) {
-					query.append(field.getAnnotation(Column.class).name());
-					query.append(" = ?, ");
-				}
+			
+			for (Field field: getFieldColumnWithoutId(clazz)) {
+				appendColumnToQuery(query, field, " = ?, ");
 			}
-			query.delete(query.length() - 2, query.length());
-			query.append(" WHERE ");
-			query.append(" id = ?");
-
+			cleanQueryAppend(query);
+			query.append(" WHERE id = ?");
 		}
 
 		return query.toString();
 	}
 
-	public static <T> void setPreparedStatementUpdateQuery(PreparedStatement preparedStatement, T entity)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException,
-			SecurityException, SQLException, NoSuchFieldException {
-
-		int index = 1;
-		Field[] fields = getFieldsAnnotatedWith(entity.getClass().getDeclaredFields(), Column.class);
-		for (Field field : fields) {
-			if (!isAnnotationPresent(field, Id.class)) {
-				setPreparedStatementFieldValue(field, preparedStatement, index, entity);
-				index++;
+	public static <T> void setPreparedStatementUpdateQuery(PreparedStatement preparedStatement, T entity) 
+			throws IllegalArgumentException, IllegalAccessException, SQLException {
+		
+		int index = 0;
+		Field columnId = null;
+		for (Field field : getFieldsAnnotated(entity.getClass(), Column.class)) {
+			if (field.isAnnotationPresent(Id.class)) {
+				columnId = field;
+			} else {
+				preparedStatement.setObject(index++, field.get(entity));
 			}
 		}
-		for (Field field : getFieldsAnnotatedWith(fields, Id.class)) {
-			setPreparedStatementFieldValue(field, preparedStatement, index, entity);
-			index++;
+		
+		if (columnId != null) {
+			preparedStatement.setObject(index++, columnId.get(entity));
 		}
-
 	}
 
 	public static <T> String buildDeleteQuery(Class<T> clazz) {
 		StringBuilder query = new StringBuilder();
-		Table table = clazz.getAnnotation(Table.class);
-		if (table != null) {
+		if (clazz.isAnnotationPresent(Table.class)) {
+			Table table = clazz.getAnnotation(Table.class);
 			query.append("DELETE FROM ");
 			query.append(table.name());
-			query.append(" WHERE ");
-			query.append(" id = ?");
+			query.append(" WHERE id = ?");
 		}
 
 		return query.toString();

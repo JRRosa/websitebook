@@ -10,18 +10,19 @@ import java.util.List;
 
 import org.websitebook.ws.domain.dao.constants.ConnectionSql;
 import org.websitebook.ws.domain.dao.exceptions.DBException;
+import org.websitebook.ws.domain.dao.exceptions.FailConvertionException;
 import org.websitebook.ws.domain.dao.transformer.DaoTransformer;
 
 public abstract class AbstractDao<T, K> {
     
     protected abstract Class<T> getTypeClass();
     
-    private Connection getConnection() throws DBException, ClassNotFoundException, SQLException {
+    private Connection getConnection() throws ClassNotFoundException, SQLException {
         Class.forName(ConnectionSql.GET_DRIVER);
         return DriverManager.getConnection(ConnectionSql.URL, ConnectionSql.USER_DB, ConnectionSql.PASS_DB);
     }
 
-    public T create(T entity) {
+    public T create(T entity) throws DBException {
         try(Connection connection = getConnection()){
             String createQuery = DaoTransformer.buildCreateQuery(getTypeClass());
             try(PreparedStatement preparedStatement = connection.prepareStatement(createQuery, PreparedStatement.RETURN_GENERATED_KEYS)){
@@ -33,13 +34,13 @@ public abstract class AbstractDao<T, K> {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FailConvertionException | ClassNotFoundException | SQLException e) {
+        	throw new DBException(e);
         }
         return entity;
     }
 
-    public List<T> findAll() {
+    public List<T> findAll() throws DBException {
         List<T> entities = null;
         try(Connection connection = getConnection()){
             String findAllQuery = DaoTransformer.buildFindAllQuery(getTypeClass());
@@ -52,14 +53,14 @@ public abstract class AbstractDao<T, K> {
                 }
             }
             
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FailConvertionException | SQLException | ClassNotFoundException e) {
+        	throw new DBException(e);
         }
 
         return entities;
     }
 
-    public T findById(K id) {
+    public T findById(K id) throws DBException {
         T entity = null;
         try(Connection connection = getConnection()){
             String findByQuery = DaoTransformer.buildFindByIdQuery(getTypeClass());
@@ -71,33 +72,33 @@ public abstract class AbstractDao<T, K> {
                     }
                 }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (FailConvertionException | SQLException | ClassNotFoundException e) {
+        	throw new DBException(e);
         }
         return entity;
     }
 
-    public void update(T entity) {
+    public void update(T entity) throws DBException {
         try(Connection connection = getConnection()){
             String updateQuery = DaoTransformer.buildUpdateQuery(getTypeClass());
             try(PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)){
                 DaoTransformer.setPreparedStatementUpdateQuery(preparedStatement, entity);
                 preparedStatement.executeUpdate();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IllegalArgumentException | IllegalAccessException | SQLException | ClassNotFoundException e) {
+        	throw new DBException(e);
         }
     }
 
-    public void delete(K id) {
+    public void delete(K id) throws DBException {
         try(Connection connection = getConnection()){
         	String deleteQuery = DaoTransformer.buildDeleteQuery(getTypeClass());
             try(PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)){
                 DaoTransformer.setPreparedStatementIdQuery(preparedStatement, id);
                 preparedStatement.executeUpdate();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (SQLException | ClassNotFoundException e) {
+        	throw new DBException(e);
         }
     }
 
